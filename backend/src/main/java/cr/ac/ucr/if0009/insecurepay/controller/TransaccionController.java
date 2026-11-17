@@ -3,6 +3,7 @@ package cr.ac.ucr.if0009.insecurepay.controller;
 import cr.ac.ucr.if0009.insecurepay.dto.TransaccionDto;
 import cr.ac.ucr.if0009.insecurepay.dto.TransferenciaDto;
 import cr.ac.ucr.if0009.insecurepay.service.TransaccionService;
+import cr.ac.ucr.if0009.insecurepay.util.AutenticacionUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,39 +15,41 @@ import java.util.List;
 public class TransaccionController {
 
     private final TransaccionService transaccionService;
+    private final AutenticacionUtil auth;
 
-    public TransaccionController(TransaccionService transaccionService) {
+    public TransaccionController(TransaccionService transaccionService, AutenticacionUtil auth) {
         this.transaccionService = transaccionService;
+        this.auth = auth;
     }
 
     @GetMapping
-    public ResponseEntity<List<TransaccionDto>> listarTodas() {
-        return ResponseEntity.ok(transaccionService.listarTodas());
+    public ResponseEntity<List<TransaccionDto>> listarTodas(
+            @RequestHeader(value = "Authorization", required = false) String h) {
+        return ResponseEntity.ok(transaccionService.listarTodas(auth.requerirSesion(h)));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TransaccionDto> obtenerPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(transaccionService.obtenerPorId(id));
+    public ResponseEntity<TransaccionDto> obtenerPorId(@PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String h) {
+        return ResponseEntity.ok(transaccionService.obtenerPorId(id, auth.requerirSesion(h)));
     }
 
     @GetMapping("/cuenta/{cuentaId}")
-    public ResponseEntity<List<TransaccionDto>> obtenerPorCuenta(@PathVariable Long cuentaId) {
-        return ResponseEntity.ok(transaccionService.obtenerPorCuenta(cuentaId));
+    public ResponseEntity<List<TransaccionDto>> obtenerPorCuenta(@PathVariable Long cuentaId,
+            @RequestHeader(value = "Authorization", required = false) String h) {
+        return ResponseEntity.ok(transaccionService.obtenerPorCuenta(cuentaId, auth.requerirSesion(h)));
     }
 
-    // [VULNERABILIDAD INTENCIONADA: A03:2021 - SQL Injection]
-    // Endpoint para buscar transacciones vulnerable a inyeccion SQL en el parametro 'termino'
     @GetMapping("/buscar")
-    public ResponseEntity<List<TransaccionDto>> buscarPorConcepto(@RequestParam("termino") String termino) {
-        return ResponseEntity.ok(transaccionService.buscarPorConcepto(termino));
+    public ResponseEntity<List<TransaccionDto>> buscarPorConcepto(@RequestParam("termino") String termino,
+            @RequestHeader(value = "Authorization", required = false) String h) {
+        return ResponseEntity.ok(transaccionService.buscarPorConcepto(termino, auth.requerirSesion(h)));
     }
 
-    // [VULNERABILIDAD INTENCIONADA: A01:2021 - IDOR en Transferencias]
-    // [VULNERABILIDAD INTENCIONADA: A03:2021 - Stored XSS]
     @PostMapping("/transferir")
-    public ResponseEntity<TransaccionDto> transferir(@RequestBody TransferenciaDto dto) {
-        TransaccionDto resultado = transaccionService.transferir(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(resultado);
+    public ResponseEntity<TransaccionDto> transferir(@RequestBody TransferenciaDto dto,
+            @RequestHeader(value = "Authorization", required = false) String h) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(transaccionService.transferir(dto, auth.requerirSesion(h)));
     }
 }
-
