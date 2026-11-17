@@ -31,14 +31,16 @@ export class TransferirComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit(): void {
-    this.bancoService.listarTodasLasCuentas().subscribe({
-      next: (cuentas) => {
-        this.todasLasCuentas = cuentas;
-      }
-    });
-  }
-
+ngOnInit(): void {
+  const user = this.authService.currentUser();
+  if (!user) return;
+  this.bancoService.obtenerCuentasUsuario(user.usuarioId).subscribe({
+    next: (cuentas) => {
+      this.todasLasCuentas = cuentas;
+      if (cuentas.length) this.transferencia.cuentaOrigenId = cuentas[0].id;
+    }
+  });
+}
   onTransferir(): void {
     if (!this.transferencia.cuentaOrigenId || !this.transferencia.numeroCuentaDestino || !this.transferencia.monto) {
       this.errorMsg = 'Por favor complete todos los datos de la transferencia.';
