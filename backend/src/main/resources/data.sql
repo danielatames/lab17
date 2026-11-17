@@ -4,11 +4,11 @@
 -- ==============================================================================
 
 INSERT INTO USUARIOS (username, password, nombre_completo, email, rol) VALUES
-('admin', 'admin123', 'Administrador General de Sistemas', 'admin@insecurepay.fi.cr', 'ADMIN'),
-('auditor_seguridad', 'auditor2026', 'Lic. Esteban Solano Chaves', 'esolano@insecurepay.fi.cr', 'AUDITOR'),
-('carlos_mora', 'carlos123', 'Carlos Mora Morales', 'cmora@correo.cr', 'CLIENTE'),
-('maria_rojas', 'maria123', 'María Rojas Soto', 'mrojas@empresa.cr', 'CLIENTE'),
-('juan_perez', 'juan123', 'Juan Pérez Delgado', 'jperez@correo.cr', 'CLIENTE');
+('admin', '$2a$10$NwoQ2HClsReLhQXpesFi4Oq1v.Nx3IfD8UVBQfqjTCxErdgfO2GPG', 'Administrador General de Sistemas', 'admin@insecurepay.fi.cr', 'ADMIN'),
+('auditor_seguridad', '$2a$10$DUZn.6qzbC39amonDaOL7epxEvUHI5jLbLFQ5OFHYXZgCr4n4WVqG', 'Lic. Esteban Solano Chaves', 'esolano@insecurepay.fi.cr', 'AUDITOR'),
+('carlos_mora', '$2a$10$CEudowKD/1mznXA2G7VGxueouNORv3kIEnbHthkBkdX2wPjU2ERji', 'Carlos Mora Morales', 'cmora@correo.cr', 'CLIENTE'),
+('maria_rojas', '$2a$10$Rorhqz6rWuRLazAgY9.do.8BSGteH3q/Tf9bMzrrF4mx.6jvz7LAS', 'María Rojas Soto', 'mrojas@empresa.cr', 'CLIENTE'),
+('juan_perez', '$2a$10$TaakVf61MuPcR.y8.C5wXekgAc6T8UIxK/iSiS6c9vxE.sjfIL64a', 'Juan Pérez Delgado', 'jperez@correo.cr', 'CLIENTE');
 
 INSERT INTO CUENTAS_BANCARIAS (usuario_id, numero_cuenta, tipo_cuenta, saldo, moneda, activa) VALUES
 (1, 'CR05015202001026458900', 'CORRIENTE', 50000000.00, 'CRC', TRUE),
