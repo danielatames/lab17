@@ -1,11 +1,15 @@
 package cr.ac.ucr.if0009.insecurepay.service;
 
 import cr.ac.ucr.if0009.insecurepay.dto.CuentaDto;
+import cr.ac.ucr.if0009.insecurepay.exception.AccesoDenegadoException;
+import cr.ac.ucr.if0009.insecurepay.exception.RecursoNoEncontradoException;
 import cr.ac.ucr.if0009.insecurepay.model.CuentaBancaria;
 import cr.ac.ucr.if0009.insecurepay.repository.CuentaRepository;
+import cr.ac.ucr.if0009.insecurepay.util.SesionUsuario;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -17,28 +21,29 @@ public class CuentaService {
         this.cuentaRepository = cuentaRepository;
     }
 
-    // [VULNERABILIDAD INTENCIONADA: A01:2021 - Broken Access Control]
-    // Retorna todas las cuentas del banco sin verificar privilegios de administrador
-    public List<CuentaDto> listarTodas() {
-        return cuentaRepository.findAll().stream()
-                .map(this::convertirADto)
-                .collect(Collectors.toList());
+    public List<CuentaDto> listarTodas(SesionUsuario sesion) {
+        if (!sesion.esPrivilegiado()) {
+            throw new AccesoDenegadoException("Requiere privilegios de administración o auditoría.");
+        }
+        return cuentaRepository.findAll().stream().map(this::convertirADto).collect(Collectors.toList());
     }
 
-    // [VULNERABILIDAD INTENCIONADA: A01:2021 - IDOR (Insecure Direct Object Reference)]
-    // Permite consultar los fondos y datos de cualquier cuenta bancaria alterando el {id}
-    public CuentaDto obtenerPorId(Long id) {
+    public CuentaDto obtenerPorId(Long id, SesionUsuario sesion) {
         CuentaBancaria cuenta = cuentaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cuenta bancaria no encontrada con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cuenta bancaria no encontrada."));
+        boolean esPropietario = Objects.equals(cuenta.getUsuario().getId(), sesion.usuarioId());
+        if (!esPropietario && !sesion.esPrivilegiado()) {
+            throw new AccesoDenegadoException("Acceso no autorizado a cuenta ajena.");
+        }
         return convertirADto(cuenta);
     }
 
-    // [VULNERABILIDAD INTENCIONADA: A01:2021 - BOLA]
-    // Permite listar todas las cuentas de cualquier cliente alterando el usuarioId
-    public List<CuentaDto> obtenerPorUsuario(Long usuarioId) {
+    public List<CuentaDto> obtenerPorUsuario(Long usuarioId, SesionUsuario sesion) {
+        if (!Objects.equals(usuarioId, sesion.usuarioId()) && !sesion.esPrivilegiado()) {
+            throw new AccesoDenegadoException("Acceso no autorizado a cuentas ajenas.");
+        }
         return cuentaRepository.findByUsuarioId(usuarioId).stream()
-                .map(this::convertirADto)
-                .collect(Collectors.toList());
+                .map(this::convertirADto).collect(Collectors.toList());
     }
 
     private CuentaDto convertirADto(CuentaBancaria cuenta) {
@@ -54,4 +59,3 @@ public class CuentaService {
         return dto;
     }
 }
-
