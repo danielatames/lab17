@@ -3,6 +3,8 @@ package cr.ac.ucr.if0009.insecurepay.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,8 +15,6 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // [VULNERABILIDAD INTENCIONADA: A02:2021 - Cryptographic Failures]
-    // Secreto estatico predecible y debil
     @Value("${jwt.secret}")
     private String secret;
 
@@ -52,5 +52,11 @@ public class JwtUtil {
             return false;
         }
     }
-}
 
+    @PostConstruct
+    void validarSecreto() {
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("JWT_SECRET debe tener al menos 256 bits (32 bytes).");
+        }
+    }
+}
